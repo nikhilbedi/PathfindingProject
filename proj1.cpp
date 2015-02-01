@@ -11,6 +11,23 @@
 using namespace std;
 /// you can add whatever helper functions/variables you need here.
 
+string computeDirection(pair<int,int> start, pair<int,int> goal)
+{
+	int x = goal.first - start.first; // if 1, East. -1, West
+	if(x > 0)
+		return "East";
+	else(x < 0)
+		return "West";
+
+	int y = goal.second - start.second; // if 1, South. -1, North
+	if(y > 0)
+		return "South";
+	else(y < 0)
+		return "North";
+
+	return "";
+}
+
 int computeManhattanDistance(pair<int,int> start, pair<int,int> goal)
 {
 	int xDist = start.first - goal.first;
@@ -45,6 +62,7 @@ pair<int,int>& obtainSmallestCostNode(map<pair<int, int>, int > &gValues, set< p
 
 vector<string> questionOne(Problem &problem)
 {
+	vector<string> path;
 	set< pair<int,int> > closedSet;
 	set< pair<int,int> > openSet;
 	map< pair<int,int>, pair<int,int> > parents; 
@@ -114,13 +132,19 @@ vector<string> questionOne(Problem &problem)
 			break;
 
 		// Grab the node with smallest f value off of openset, and move current to the closed set
+		pair <int, int> pastState = current;
 		current = obtainSmallestCostNode(gValues, openSet, goal);
 		closedSet.insert(current);
 		openSet.erase(current);
+		path.push_back(computeDirection(pastState, current));
 	}
 	while(current.first != goal.first || current.second != goal.second);	// TODO verify you are performing a deep comparison (x1=x2, y1=y2)
-	
-	return vector<string>();
+
+	// Reverse path
+	vector<string> reversePath;
+	for(int i = 0; i < path.size(); i++)
+		reversePath[i] = path[path.size()-i-1];
+	return reversePath;
 }
 
 vector<string> questionTwo(Problem &problem)
