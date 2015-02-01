@@ -1,5 +1,6 @@
 #include <queue>
 #include <map>
+#include <set>
 #include <vector>
 #include <algorithm>
 #include <string>
@@ -10,9 +11,123 @@
 using namespace std;
 /// you can add whatever helper functions/variables you need here.
 
+struct Node 
+{
+	Node* parent;
+	pair<int, int> location;
+	int f;
+	int g;
+	int h;
+
+	Node(pair<int, int> loc)
+	{
+		location = loc;
+		f = 0;
+		g = 0;
+		h = 0;
+		parent = NULL;
+	}
+
+	bool operator==(Node& other)
+	{
+		return this->location.first == other.location.first && this->location.second == other.location.second;
+	}
+};
+
+int computeManhattanDistance(Node* start, Node* goal)
+{
+	int xDist = start->location.first - goal->location.first;
+	int yDist = start->location.second - goal->location.second;
+	if(xDist < 0)	xDist *= -1;
+	if(yDist < 0)	yDist *= -1;
+
+	return xDist + yDist;
+}
+
+Node* obtainSmallestCostNode(set<Node*>& s)
+{
+	if(s.empty())
+		return NULL;
+	int min = 100000;
+	Node* n = NULL;
+	set<Node*>::iterator it = s.begin();
+	for(; it != s.end(); it++)
+	{
+		if((*it)->f < min)
+		{
+			n = *it;
+			min = n->f;
+		}
+	}
+	return n;
+}
+
 vector<string> questionOne(Problem &problem)
 {
 	/// write your own code here
+
+	set<Node*> closedSet;
+	set<Node*> openSet;
+	Node* current = new Node(problem.getStartState());
+	Node* start = current;
+	vector<pair<int, int> > goals = problem.getGoals();
+
+	// If there is no goal, return empty
+	if (goals.size() <= 0)
+		return vector<string>();
+
+	// Add the first node to the closed set
+	// The closed set contains nodes that have already been evaluated
+	Node* goal = new Node(goals[0]);
+	closedSet.insert(current);
+
+	do 
+	{
+		//cout << "Current State: " << current->location.first << " " << current->location.second << endl;
+		// For each node adjacent to current, evaluate it
+		vector<pair<int, int> > neighbors = problem.getSuccessors(current->location);
+		for(int i=0; i<neighbors.size(); ++i)
+		{
+			Node* n = new Node(neighbors[i]);
+			// If this node is in the closedSet, simply continue
+			if(closedSet.find(n) != closedSet.end())
+			{
+				continue;
+			}
+
+			// If this node is in the openSet, check if we should reassign the parent
+			set<Node*>::iterator it = openSet.find(n);
+			if (it != openSet.end())	// check if this searches by value, not reference (otherwise, modify comparison operator)
+			{
+				int new_g = current->g + 1;
+				if(new_g < (*it)->g)	// if current is a better parent, replace
+				{
+					(*it)->g = new_g;
+					(*it)->f = (*it)->h + (*it)->g; // h(x) + g(x)
+				}
+			}
+			// else, compute heuristic and add to open set
+			else 
+			{
+				n->parent = current;
+				n->h = computeManhattanDistance(n, goal);
+				n->g = current->g + 1;
+				n->f = n->g + n->h;
+				openSet.insert(n);
+			}
+		}
+
+		// if the open set is empty, we are done
+		if(openSet.empty())
+			break;
+
+		// Grab the node with smallest f value off of openset, and move current to the closed set
+		current = obtainSmallestCostNode(openSet);
+		closedSet.insert(current);
+		openSet.erase(current);
+	}
+	while(current->location.first != goal->location.first || current->location.second != goal->location.second);	// TODO verify you are performing a deep comparison (x1=x2, y1=y2)
+	
 	return vector<string>();
 }
 
@@ -34,6 +149,8 @@ vector<string> questionFour(Problem &problem)
 	/// write your own code here
 	return vector<string>();	
 }
+
+//int getF(map<pair<int, int>, pair<int,int> > &parents, pair<int, int> goal)
 
 
 
