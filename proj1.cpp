@@ -16,13 +16,13 @@ string computeDirection(pair<int,int> start, pair<int,int> goal)
 	int x = goal.first - start.first; // if 1, East. -1, West
 	if(x > 0)
 		return "East";
-	else(x < 0)
+	else if(x < 0)
 		return "West";
 
 	int y = goal.second - start.second; // if 1, South. -1, North
 	if(y > 0)
 		return "South";
-	else(y < 0)
+	else if(y < 0)
 		return "North";
 
 	return "";
@@ -141,10 +141,12 @@ vector<string> questionOne(Problem &problem)
 	while(current.first != goal.first || current.second != goal.second);	// TODO verify you are performing a deep comparison (x1=x2, y1=y2)
 
 	// Reverse path
-	vector<string> reversePath;
+	/*vector<string> reversePath;
 	for(int i = 0; i < path.size(); i++)
-		reversePath[i] = path[path.size()-i-1];
-	return reversePath;
+		reversePath.push_back(path[path.size()-i-1]);
+
+	return reversePath;*/
+	return path;
 }
 
 vector<string> questionTwo(Problem &problem)
