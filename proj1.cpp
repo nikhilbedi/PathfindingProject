@@ -11,52 +11,33 @@
 using namespace std;
 /// you can add whatever helper functions/variables you need here.
 
-struct Node 
+int computeManhattanDistance(pair<int,int> start, pair<int,int> goal)
 {
-	Node* parent;
-	pair<int, int> location;
-	int f;
-	int g;
-	int h;
-
-	Node(pair<int, int> loc)
-	{
-		location = loc;
-		f = 0;
-		g = 0;
-		h = 0;
-		parent = NULL;
-	}
-
-	bool operator==(Node& other)
-	{
-		return this->location.first == other.location.first && this->location.second == other.location.second;
-	}
-};
-
-int computeManhattanDistance(Node* start, Node* goal)
-{
-	int xDist = start->location.first - goal->location.first;
-	int yDist = start->location.second - goal->location.second;
+	int xDist = start.first - goal.first;
+	int yDist = start.second - goal.second;
 	if(xDist < 0)	xDist *= -1;
 	if(yDist < 0)	yDist *= -1;
 
 	return xDist + yDist;
 }
 
-Node* obtainSmallestCostNode(set<Node*>& s)
+pair<int,int>& obtainSmallestCostNode(map<pair<int, int>, int > &gValues, set< pair<int, int> >& s, pair<int, int> &goal)
 {
-	if(s.empty())
-		return NULL;
+	// if(s.empty())
+	// 	return 0;
 	int min = 100000;
-	Node* n = NULL;
-	set<Node*>::iterator it = s.begin();
+	pair<int, int> n;
+	set< pair<int, int> >::iterator it = s.begin();
 	for(; it != s.end(); it++)
 	{
-		if((*it)->f < min)
+		pair<int, int> node = *it;
+		map< pair<int,int>, int >::iterator nodeIterator = gValues.find(node);
+		int g = nodeIterator->second;
+		int f = computeManhattanDistance(nodeIterator->first, goal) + g;
+		if(f < min)
 		{
-			n = *it;
-			min = n->f;
+			n = node;
+			min = f;
 		}
 	}
 	return n;
@@ -64,12 +45,12 @@ Node* obtainSmallestCostNode(set<Node*>& s)
 
 vector<string> questionOne(Problem &problem)
 {
-	/// write your own code here
-
-	set<Node*> closedSet;
-	set<Node*> openSet;
-	Node* current = new Node(problem.getStartState());
-	Node* start = current;
+	set< pair<int,int> > closedSet;
+	set< pair<int,int> > openSet;
+	map< pair<int,int>, pair<int,int> > parents; 
+	map< pair<int,int>, int> gValues; 
+	pair<int,int> current = problem.getStartState();
+	pair<int,int> start = problem.getStartState();
 	vector<pair<int, int> > goals = problem.getGoals();
 
 	// If there is no goal, return empty
@@ -78,41 +59,52 @@ vector<string> questionOne(Problem &problem)
 
 	// Add the first node to the closed set
 	// The closed set contains nodes that have already been evaluated
-	Node* goal = new Node(goals[0]);
+	pair<int,int> goal = goals[0];
 	closedSet.insert(current);
-
+	gValues.insert(make_pair(current, 0));
 	do 
 	{
 		//cout << "Current State: " << current->location.first << " " << current->location.second << endl;
 		// For each node adjacent to current, evaluate it
-		vector<pair<int, int> > neighbors = problem.getSuccessors(current->location);
+		vector<pair<int, int> > neighbors = problem.getSuccessors(current);
 		for(int i=0; i<neighbors.size(); ++i)
 		{
-			Node* n = new Node(neighbors[i]);
-			// If this node is in the closedSet, simply continue
+			pair<int,int> n = neighbors[i];
+			// If this node is in the closedSet, simply continue to the next neighbor
 			if(closedSet.find(n) != closedSet.end())
 			{
 				continue;
 			}
 
 			// If this node is in the openSet, check if we should reassign the parent
-			set<Node*>::iterator it = openSet.find(n);
+			set< pair<int,int> >::iterator it = openSet.find(n);
 			if (it != openSet.end())	// check if this searches by value, not reference (otherwise, modify comparison operator)
 			{
-				int new_g = current->g + 1;
-				if(new_g < (*it)->g)	// if current is a better parent, replace
+				// Obtain current g value
+				map< pair<int,int>, int >::iterator currentNode = gValues.find(current);
+				int current_g = currentNode->second;
+				int new_g = current_g + 1;
+
+				// Obtain n's g value (if the n is in the openSet, it is strictly assumed it has been assigned a g-value)
+				map< pair<int,int>, int >::iterator nNode = gValues.find(n);
+				int old_g = nNode->second;
+
+				// if current is a better parent, replace
+				if(new_g < old_g)	
 				{
-					(*it)->g = new_g;
-					(*it)->f = (*it)->h + (*it)->g; // h(x) + g(x)
+					nNode->second = new_g;
+					//gValues.insert(make_pair(n, current_g + 1));
 				}
 			}
 			// else, compute heuristic and add to open set
 			else 
 			{
-				n->parent = current;
-				n->h = computeManhattanDistance(n, goal);
-				n->g = current->g + 1;
-				n->f = n->g + n->h;
+				parents.insert(make_pair(n, current)); 	// n's parent is the current node
+				//n->h = computeManhattanDistance(n, goal);
+				// Obtain current G value, and use that to compute n's g value
+				map< pair<int,int>, int >::iterator currentNode = gValues.find(current);
+				int current_g = currentNode->second;
+				gValues.insert(make_pair(n, current_g + 1));
 				openSet.insert(n);
 			}
 		}
@@ -122,11 +114,11 @@ vector<string> questionOne(Problem &problem)
 			break;
 
 		// Grab the node with smallest f value off of openset, and move current to the closed set
-		current = obtainSmallestCostNode(openSet);
+		current = obtainSmallestCostNode(gValues, openSet, goal);
 		closedSet.insert(current);
 		openSet.erase(current);
 	}
-	while(current->location.first != goal->location.first || current->location.second != goal->location.second);	// TODO verify you are performing a deep comparison (x1=x2, y1=y2)
+	while(current.first != goal.first || current.second != goal.second);	// TODO verify you are performing a deep comparison (x1=x2, y1=y2)
 	
 	return vector<string>();
 }
