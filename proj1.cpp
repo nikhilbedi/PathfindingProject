@@ -11,21 +11,28 @@
 using namespace std;
 /// you can add whatever helper functions/variables you need here.
 
-string computeDirection(pair<int,int> start, pair<int,int> goal)
+/// Do not change codes below
+vector<string> getPath(map<pair<int, int>, pair<int,int> > &parent, pair<int, int> goal)
 {
-	int x = goal.first - start.first; // if 1, East. -1, West
-	if(x > 0)
-		return "East";
-	else if(x < 0)
-		return "West";
-
-	int y = goal.second - start.second; // if 1, South. -1, North
-	if(y > 0)
-		return "South";
-	else if(y < 0)
-		return "North";
-
-	return "";
+	vector<string> path;
+	pair<int, int> state = goal;
+	int dx, dy;
+	while (parent[state] != state)
+	{
+		dx = state.first - parent[state].first;
+		dy = state.second - parent[state].second;
+		if (dx>0)
+			path.push_back("South");
+		else if (dx<0)
+			path.push_back("North");
+		else if (dy>0)
+			path.push_back("East");
+		else
+			path.push_back("West");
+		state = parent[state];
+	}
+	reverse(path.begin(), path.end());
+	return path;
 }
 
 int computeManhattanDistance(pair<int,int> start, pair<int,int> goal)
@@ -111,7 +118,6 @@ vector<string> questionOne(Problem &problem)
 				if(new_g < old_g)	
 				{
 					nNode->second = new_g;
-					//gValues.insert(make_pair(n, current_g + 1));
 				}
 			}
 			// else, compute heuristic and add to open set
@@ -136,16 +142,12 @@ vector<string> questionOne(Problem &problem)
 		current = obtainSmallestCostNode(gValues, openSet, goal);
 		closedSet.insert(current);
 		openSet.erase(current);
-		path.push_back(computeDirection(pastState, current));
 	}
-	while(current.first != goal.first || current.second != goal.second);	// TODO verify you are performing a deep comparison (x1=x2, y1=y2)
+	while(current.first != goal.first || current.second != goal.second);
 
-	// Reverse path
-	/*vector<string> reversePath;
-	for(int i = 0; i < path.size(); i++)
-		reversePath.push_back(path[path.size()-i-1]);
-
-	return reversePath;*/
+	// Remove first element, because for some reason it's garbage :P
+	path = getPath(parents, goal);
+	path.erase(path.begin());
 	return path;
 }
 
@@ -172,29 +174,7 @@ vector<string> questionFour(Problem &problem)
 
 
 
-/// Do not change codes below
-vector<string> getPath(map<pair<int, int>, pair<int,int> > &parent, pair<int, int> goal)
-{
-	vector<string> path;
-	pair<int, int> state = goal;
-	int dx, dy;
-	while (parent[state] != state)
-	{
-		dx = state.first - parent[state].first;
-		dy = state.second - parent[state].second;
-		if (dx>0)
-			path.push_back("South");
-		else if (dx<0)
-			path.push_back("North");
-		else if (dy>0)
-			path.push_back("East");
-		else
-			path.push_back("West");
-		state = parent[state];
-	}
-	reverse(path.begin(), path.end());
-	return path;
-}
+
 
 vector<string> questionZero(Problem &problem)
 {
