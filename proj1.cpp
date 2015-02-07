@@ -77,24 +77,16 @@ pair<int,int>& obtainSmallestCostNode(map<pair<int, int>, int > &gValues, set< p
 	return n;
 }
 
-vector<string> questionOne(Problem &problem)
+vector<string> aStar(pair<int,int>& current, pair<int,int>& goal, Problem& problem)
 {
 	vector<string> path;
 	set< pair<int,int> > closedSet;
 	set< pair<int,int> > openSet;
 	map< pair<int,int>, pair<int,int> > parents; 
 	map< pair<int,int>, int> gValues; 
-	pair<int,int> current = problem.getStartState();
-	pair<int,int> start = problem.getStartState();
-	vector<pair<int, int> > goals = problem.getGoals();
-
-	// If there is no goal, return empty
-	if (goals.size() <= 0)
-		return vector<string>();
 
 	// Add the first node to the closed set
 	// The closed set contains nodes that have already been evaluated
-	pair<int,int> goal = goals[0];
 	closedSet.insert(current);
 	gValues.insert(make_pair(current, 0));
 	do 
@@ -161,9 +153,57 @@ vector<string> questionOne(Problem &problem)
 	return path;
 }
 
+vector<string> questionOne(Problem &problem)
+{
+	
+	pair<int,int> current = problem.getStartState();
+	pair<int,int> start = problem.getStartState();
+	vector<pair<int, int> > goals = problem.getGoals();
+
+	// If there is no goal, return empty
+	if (goals.size() <= 0)
+		return vector<string>();
+
+	pair<int,int> goal = goals[0];
+
+	return aStar(current, goal, problem);
+}
+
 vector<string> questionTwo(Problem &problem)
 {
-	/// write your own code here
+	vector<string> mergedPath;
+
+
+
+	pair<int,int> current = problem.getStartState();
+	pair<int,int> start = problem.getStartState();
+	vector<pair<int, int> > goals = problem.getGoals();
+
+	// If there is no goal, return empty
+	if (goals.size() <= 0)
+		return vector<string>();
+
+	
+	
+
+	for(int i =0; i < goals.size(); i++)
+	{
+		// For each goal, we need these structures
+		set< pair<int,int> > closedSet;
+		set< pair<int,int> > openSet;
+		map< pair<int,int>, pair<int,int> > parents; 
+		map< pair<int,int>, int> gValues; 
+		vector<string> path;
+
+		// TODO Assign goal to be closest Manhattan distance from the current state
+		pair<int,int> goal = goals[0];
+
+		// Add the first node to the closed set
+		// The closed set contains nodes that have already been evaluated
+		closedSet.insert(current);
+		gValues.insert(make_pair(current, 0));
+	}
+
 	return vector<string>();
 }
 
