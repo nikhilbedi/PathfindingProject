@@ -155,7 +155,6 @@ vector<string> aStar(pair<int,int>& current, pair<int,int>& goal, Problem& probl
 
 vector<string> questionOne(Problem &problem)
 {
-	
 	pair<int,int> current = problem.getStartState();
 	pair<int,int> start = problem.getStartState();
 	vector<pair<int, int> > goals = problem.getGoals();
@@ -173,10 +172,7 @@ vector<string> questionTwo(Problem &problem)
 {
 	vector<string> mergedPath;
 
-
-
 	pair<int,int> current = problem.getStartState();
-	pair<int,int> start = problem.getStartState();
 	vector<pair<int, int> > goals = problem.getGoals();
 
 	// If there is no goal, return empty
@@ -184,27 +180,34 @@ vector<string> questionTwo(Problem &problem)
 		return vector<string>();
 
 	
-	
-
-	for(int i =0; i < goals.size(); i++)
+	// While there is still a goal
+	//int i = 0;
+	while(!goals.empty())
 	{
-		// For each goal, we need these structures
-		set< pair<int,int> > closedSet;
-		set< pair<int,int> > openSet;
-		map< pair<int,int>, pair<int,int> > parents; 
-		map< pair<int,int>, int> gValues; 
-		vector<string> path;
+		// Assign goal to be closest Manhattan distance from the current state
+		pair<int,int> goal;
+		int min = 1000000;
+		int indexToRemove = 0;
+		for(int i = 0; i < goals.size(); i++)
+		{
+			int temp = computeManhattanDistance(current, goals[i]);
+			if(temp < min)
+			{
+				min = temp;
+				goal = goals[i];
+				indexToRemove = i;
+			}
+		}
 
-		// TODO Assign goal to be closest Manhattan distance from the current state
-		pair<int,int> goal = goals[0];
+		// remove the chosen goal from the goals list
+		goals.erase(goals.begin() + indexToRemove);
 
-		// Add the first node to the closed set
-		// The closed set contains nodes that have already been evaluated
-		closedSet.insert(current);
-		gValues.insert(make_pair(current, 0));
+		// Obtain path and add to mergedPath
+		vector<string> path = aStar(current, goal, problem);
+		mergedPath.insert(mergedPath.end(), path.begin(), path.end());
 	}
 
-	return vector<string>();
+	return mergedPath;
 }
 
 
