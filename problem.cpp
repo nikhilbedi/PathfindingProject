@@ -20,6 +20,11 @@ Problem::Problem(vector<string> b)
 	_counts.clear();
 	for (int i=0; i<_height; ++i)
 	{
+		if (_board[i].length() != _width)
+		{
+			_height = i;
+			break;
+		}
 		for(int j=0; j<_width; ++j)
 		{
 			if (_board[i][j] == 'P')
@@ -69,13 +74,14 @@ int Problem::getExpansionCounts()
 
 void Problem::dumpQueries(string taskName)
 {
+	
 	//(i, j) => (j, h-1-i)
 	try{
 		ofstream fout(taskName.c_str());
 		fout << _stateCount << endl;
 		for (vector<pair<int, int> >::iterator iter = _queries.begin(); iter != _queries.end(); ++iter)
 		{
-			fout << iter->second << " " << _height - iter->first << endl;
+			fout << iter->second << " " << _height - 1 - iter->first << endl;
 		}
 		fout.close();
 	} catch (...) {}

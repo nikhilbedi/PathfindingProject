@@ -1,6 +1,5 @@
 #include <queue>
 #include <map>
-#include <set>
 #include <vector>
 #include <algorithm>
 #include <string>
@@ -9,9 +8,7 @@
 #include "problem.h"
 
 using namespace std;
-/// you can add whatever helper functions/variables you need here.
 
-/// Do not change codes below
 vector<string> getPath(map<pair<int, int>, pair<int,int> > &parent, pair<int, int> goal)
 {
 	vector<string> path;
@@ -35,6 +32,8 @@ vector<string> getPath(map<pair<int, int>, pair<int,int> > &parent, pair<int, in
 	return path;
 }
 
+/// you can add whatever helper functions/variables you need here.
+
 int computeManhattanDistance(pair<int,int> start, pair<int,int> goal)
 {
 	int xDist = start.first - goal.first;
@@ -42,6 +41,17 @@ int computeManhattanDistance(pair<int,int> start, pair<int,int> goal)
 	if(xDist < 0)	xDist *= -1;
 	if(yDist < 0)	yDist *= -1;
 
+	return xDist + yDist;
+}
+
+int computeEuclideanDistance(pair<int,int> start, pair<int,int> goal)
+{
+	// Optimizations
+		// We don't compute the square root because it is expensive and unnecessary
+	int xDist = start.first - goal.first;
+	int yDist = start.second - goal.second;
+	xDist *= xDist;
+	yDist *= yDist;
 	return xDist + yDist;
 }
 
@@ -170,10 +180,9 @@ vector<string> questionFour(Problem &problem)
 	return vector<string>();	
 }
 
-//int getF(map<pair<int, int>, pair<int,int> > &parents, pair<int, int> goal)
 
 
-
+/// Do not change codes below
 
 
 vector<string> questionZero(Problem &problem)
@@ -239,7 +248,7 @@ int main(int argc, char**argv)
 		{
 			string str;
 			getline(fin, str);
-			if (!fin.eof())
+			if (str.length() > 0)
 				_board.push_back(str);
 		}
 		fin.close();
