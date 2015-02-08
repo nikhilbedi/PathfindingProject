@@ -55,7 +55,7 @@ int computeEuclideanDistance(pair<int,int> start, pair<int,int> goal)
 	return xDist + yDist;
 }
 
-pair<int,int>& obtainSmallestCostNode(map<pair<int, int>, int > &gValues, set< pair<int, int> >& s, pair<int, int> &goal)
+pair<int,int>& obtainSmallestCostNode(map<pair<int, int>, int > &gValues, set< pair<int, int> >& s, pair<int, int> &goal, int weight)
 {
 	// if(s.empty())
 	// 	return 0;
@@ -68,6 +68,7 @@ pair<int,int>& obtainSmallestCostNode(map<pair<int, int>, int > &gValues, set< p
 		map< pair<int,int>, int >::iterator nodeIterator = gValues.find(node);
 		int g = nodeIterator->second;
 		int f = computeManhattanDistance(nodeIterator->first, goal) + g;
+		f *= weight;
 		if(f < min)
 		{
 			n = node;
@@ -141,7 +142,7 @@ vector<string> aStar(pair<int,int>& current, pair<int,int>& goal, Problem& probl
 
 		// Grab the node with smallest f value off of openset, and move current to the closed set
 		pair <int, int> pastState = current;
-		current = obtainSmallestCostNode(gValues, openSet, goal);
+		current = obtainSmallestCostNode(gValues, openSet, goal, 1);
 		closedSet.insert(current);
 		openSet.erase(current);
 	}
@@ -153,7 +154,7 @@ vector<string> aStar(pair<int,int>& current, pair<int,int>& goal, Problem& probl
 	return path;
 }
 
-vector<string> aStarTricky(pair<int,int>& current, pair<int,int>& goal, Problem& problem, vector< pair<int,int> >& goals)
+vector<string> aStarTricky(pair<int,int>& current, pair<int,int>& goal, Problem& problem, vector< pair<int,int> >& goals, int weight)
 {
 	vector<string> path;
 	set< pair<int,int> > closedSet;
@@ -236,7 +237,7 @@ vector<string> aStarTricky(pair<int,int>& current, pair<int,int>& goal, Problem&
 
 		// Grab the node with smallest f value off of openset, and move current to the closed set
 		pair <int, int> pastState = current;
-		current = obtainSmallestCostNode(gValues, openSet, goal);
+		current = obtainSmallestCostNode(gValues, openSet, goal, weight);
 		closedSet.insert(current);
 		openSet.erase(current);
 	}
@@ -319,7 +320,6 @@ vector<string> questionThree(Problem &problem)
 
 	
 	// While there is still a goal
-	//int i = 0;
 	while(!goals.empty())
 	{
 		// Assign goal to be closest Manhattan distance from the current state
@@ -339,7 +339,7 @@ vector<string> questionThree(Problem &problem)
 
 		// Obtain path and add to mergedPath
 		pair<int,int> attemptGoal = goal;	// TODO remove
-		vector<string> path = aStarTricky(current, goal, problem, goals);
+		vector<string> path = aStarTricky(current, goal, problem, goals, 1);
 		mergedPath.insert(mergedPath.end(), path.begin(), path.end());
 
 		// remove the chosen goal
@@ -351,8 +351,44 @@ vector<string> questionThree(Problem &problem)
 
 vector<string> questionFour(Problem &problem)
 {
-	/// write your own code here
-	return vector<string>();	
+	vector<string> mergedPath;
+
+	pair<int,int> current = problem.getStartState();
+	vector<pair<int, int> > goals = problem.getGoals();
+
+	// If there is no goal, return empty
+	if (goals.size() <= 0)
+		return vector<string>();
+
+	
+	// While there is still a goal
+	while(!goals.empty())
+	{
+		// Assign goal to be closest Manhattan distance from the current state
+		pair<int,int> goal;
+		int min = 1000000;
+		int indexToRemove = 0;
+		for(int i = 0; i < goals.size(); i++)
+		{
+			int temp = computeManhattanDistance(current, goals[i]);
+			if(temp < min)
+			{
+				min = temp;
+				goal = goals[i];
+				indexToRemove = i;
+			}
+		}
+
+		// Obtain path and add to mergedPath
+		pair<int,int> attemptGoal = goal;	// TODO remove
+		vector<string> path = aStarTricky(current, goal, problem, goals, 40);
+		mergedPath.insert(mergedPath.end(), path.begin(), path.end());
+
+		// remove the chosen goal
+		goals.erase(goals.begin() + indexToRemove);
+	}
+
+	return mergedPath;
 }
 
 
