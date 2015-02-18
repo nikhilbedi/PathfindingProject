@@ -9,6 +9,9 @@
 
 using namespace std;
 
+// Name: Nikhil Bedi
+// SID: 5960795379
+
 vector<string> getPath(map<pair<int, int>, pair<int,int> > &parent, pair<int, int> goal)
 {
 	vector<string> path;
@@ -55,7 +58,7 @@ int computeEuclideanDistance(pair<int,int> start, pair<int,int> goal)
 	return xDist + yDist;
 }
 
-pair<int,int>& obtainSmallestCostNode(map<pair<int, int>, int > &gValues, set< pair<int, int> >& s, pair<int, int> &goal, int weight)
+pair<int,int>& obtainSmallestCostNode(map<pair<int, int>, int > &gValues, set< pair<int, int> >& s, pair<int, int> &goal, float weight)
 {
 	// if(s.empty())
 	// 	return 0;
@@ -67,8 +70,8 @@ pair<int,int>& obtainSmallestCostNode(map<pair<int, int>, int > &gValues, set< p
 		pair<int, int> node = *it;
 		map< pair<int,int>, int >::iterator nodeIterator = gValues.find(node);
 		int g = nodeIterator->second;
-		int f = computeManhattanDistance(nodeIterator->first, goal) + g;
-		f *= weight;
+		float h = (float) computeManhattanDistance(nodeIterator->first, goal) * weight;
+		float f = h + (float)g;
 		if(f < min)
 		{
 			n = node;
@@ -306,6 +309,60 @@ vector<string> questionTwo(Problem &problem)
 	return mergedPath;
 }
 
+int getCostOfActualPath(pair<int,int>& start, map< pair<int, int>, map< pair<int, int>, int > > distanceMatrix)
+{
+	if(distanceMatrix.empty())
+	{
+		cout << "Distance matrix is empty!" << endl;
+		return 0;
+	}
+	// for each item in the distance matrix for the key, start
+	if(distanceMatrix.find(start) == distanceMatrix.end())
+	{
+		cout << "Size: " << distanceMatrix.size() << endl;
+		return 0;
+	}
+	map< pair<int,int>, int> myMap = distanceMatrix.find(start)->second;
+	map< pair<int,int>, int>::iterator it;
+	int min = 100000;
+	pair<int,int> newStart;
+	for(it = myMap.begin(); it != myMap.end(); it++)
+	{
+		// determine smallest cost node (verify if visited by checking if the key exists in the distance matrix)
+		if(it->second < min && (distanceMatrix.find(it->first) != distanceMatrix.end()))
+		{
+			// Assign smallest cost node to newStart
+			newStart = it->first;
+			min = it->second;
+		}
+	}
+	// remove start from matrixd
+	distanceMatrix.erase(start);
+	return getCostOfActualPath(newStart, distanceMatrix) + min;
+}
+
+map< pair<int,int>, map<pair<int,int>, int> > createMatrixFromNodes(vector<pair<int,int> >& goals, Problem& problem)
+{
+	map< pair<int,int>, map<pair<int,int>, int> > distanceMatrix;
+	// for each node x
+		// for each node y, where y != x
+			// determine actual distance between x and y
+	for(int i = 0; i < goals.size(); i++)
+	{
+		pair<int,int> current = goals[i];
+		map< pair<int,int>, int> distances;
+		for(int j = 0; j < goals.size(); j++)
+		{
+			if (i != j && (distanceMatrix.find(goals[j]) == distanceMatrix.end()))
+			{
+				vector<string> path = aStar(current, goals[j], problem);
+				distances.insert(make_pair(goals[j], path.size()));
+			}
+		}
+		distanceMatrix.insert(make_pair(current, distances));
+	}
+	return distanceMatrix;
+}
 
 vector<string> questionThree(Problem &problem)
 {
@@ -347,6 +404,44 @@ vector<string> questionThree(Problem &problem)
 	}
 
 	return mergedPath;
+
+	// Different method which actually gets thousands of expansions, but incorrect answer...
+	// Create matrix of actual distances between every goal
+	// determine closest of goals remaining with heuristict
+		// heuristic: add g + distances 
+	/*map< pair<int, int>, map< pair<int, int>, int> > distanceMatrix;
+	goals.push_back(current);
+	distanceMatrix = createMatrixFromNodes(goals, problem);
+	cout << "REAL Size: " << distanceMatrix.size() << endl;
+	goals.erase(goals.begin() + goals.size());
+	// while there are still goals
+	while(!goals.empty())
+	{
+		int min = 100000;
+		pair<int, int> smallestCostNode;
+		int indexToRemove = 0;
+		// for each goal g remaining
+		for(int i = 0; i < goals.size(); i++)
+		{
+			// find shortest path with g chosen first
+			int temp = getCostOfActualPath(goals[i], distanceMatrix);
+			if(temp < min)
+			{
+				min = temp;
+				smallestCostNode = goals[i];
+				indexToRemove = i;
+			}
+		}
+		// Head to the shortest cost goal g
+		vector<string> path = aStar(current, smallestCostNode, problem);
+		mergedPath.insert(mergedPath.end(), path.begin(), path.end());
+
+		// remove the chosen goal
+		distanceMatrix.erase(goals[indexToRemove]);
+		goals.erase(goals.begin() + indexToRemove);
+	}
+
+	return mergedPath;*/
 }
 
 vector<string> questionFour(Problem &problem)
@@ -381,7 +476,7 @@ vector<string> questionFour(Problem &problem)
 
 		// Obtain path and add to mergedPath
 		pair<int,int> attemptGoal = goal;	// TODO remove
-		vector<string> path = aStarTricky(current, goal, problem, goals, 40);
+		vector<string> path = aStarTricky(current, goal, problem, goals, 1);
 		mergedPath.insert(mergedPath.end(), path.begin(), path.end());
 
 		// remove the chosen goal
